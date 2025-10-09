@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Album;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class AlbumController extends Controller
 {
@@ -29,14 +30,16 @@ class AlbumController extends Controller
     {
         $data = $request->validate([
             'name' => [
-                'required', 'string', 'max:200',
+                'required',
+                'string',
+                'max:200',
                 Rule::unique('album_master', 'name')->where(fn($q) => $q->where('isDelete', 0)),
             ],
             'iStatus' => ['nullable', 'in:0,1'],
         ]);
 
         $data['iStatus'] = isset($data['iStatus']) ? (int)$data['iStatus'] : 1;
-
+        $data['slugname'] = Str::slug($data['name']);
         Album::create($data);
 
         return back()->with('success', 'Album created.');
@@ -50,7 +53,9 @@ class AlbumController extends Controller
 
         $data = $request->validate([
             'name' => [
-                'required', 'string', 'max:200',
+                'required',
+                'string',
+                'max:200',
                 Rule::unique('album_master', 'name')
                     ->where(fn($q) => $q->where('isDelete', 0))
                     ->ignore($album->album_id, 'album_id'),
@@ -108,6 +113,6 @@ class AlbumController extends Controller
         $album->iStatus = $album->iStatus ? 0 : 1;
         $album->save();
 
-        return redirect()->back()->with('success','Status Updated');
+        return redirect()->back()->with('success', 'Status Updated');
     }
 }

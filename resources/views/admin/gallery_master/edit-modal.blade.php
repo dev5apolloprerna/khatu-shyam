@@ -10,11 +10,9 @@
                  <!-- Not PUT since our route is post -->
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editModalLabel">Edit Gallery</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
+                  <h5 class="modal-title">Edit Gallery</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
                 <div class="modal-body">
 
                     <div class="mb-3">
@@ -40,12 +38,16 @@
 
                     <div class="mb-3">
                         <label class="form-label">Status <span style="color:red;">*</span></label><br>
-                        <input type="radio" name="iStatus" value="1" id="edit_status_active"> Active
-                        <input type="radio" name="iStatus" value="0" id="edit_status_inactive"> Inactive
+                        <select name="iStatus" id="edit_status" class="form-control">
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
                     </div>
+                    
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
                     <button type="submit" class="btn btn-primary">Update</button>
                 </div>
             </form>

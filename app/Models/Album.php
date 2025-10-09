@@ -11,11 +11,15 @@ class Album extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'name', 'iStatus', 'isDelete',
+        'name',
+        'slugname',
+        'iStatus',
+        'isDelete',
     ];
 
     // Scope: only not-deleted
-    public function scopeAlive($q) {
+    public function scopeAlive($q)
+    {
         return $q->where('isDelete', 0);
     }
 }

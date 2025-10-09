@@ -17,10 +17,12 @@ class VideoGalleryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'video_link' => 'required|url'
+            'video_link' => 'required|url',
+            'name' => 'required'
         ]);
 
         VideoGallery::create([
+            'name' => $request->name,
             'video_link' => $request->video_link,
             'iStatus' => $request->iStatus ?? 1,
         ]);
@@ -41,6 +43,8 @@ class VideoGalleryController extends Controller
         ]);
 
         VideoGallery::where('video_Id', $id)->update([
+            'name' => $request->name,
+
             'video_link' => $request->video_link,
             'iStatus' => $request->iStatus ?? 1,
         ]);

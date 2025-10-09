@@ -6,9 +6,8 @@
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title" id="editModalLabel">Edit Live Video</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="live_video_id" id="edit_live_video_id">
@@ -19,14 +18,14 @@
                         <span class="text-danger" id="edit_link_error"></span>
                     </div>
 
-                    <div class="mb-3">
+                    {{-- <div class="mb-3">
                         <label class="form-label">Status <span style="color:red;">*</span></label><br>
                         <input type="radio" name="iStatus" value="1" id="edit_status_active"> Active
                         <input type="radio" name="iStatus" value="0" id="edit_status_inactive"> Inactive
-                    </div>
+                    </div> --}}
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary">Update</button>
                 </div>
             </form>

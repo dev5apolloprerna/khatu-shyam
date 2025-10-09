@@ -82,7 +82,7 @@
                         </button>
                         <form class="d-inline" method="POST" action="{{ route('albums.destroy', $a->album_id) }}" onsubmit="return confirm('Delete this album?')">
                           @csrf @method('DELETE')
-                          <button class="btn btn-sm btn-outline-danger"><i class="fa fa-trash"></i></button>
+                          <button class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
                         </form>
                       </td>
                     </tr>
@@ -118,10 +118,15 @@
                 <label class="form-label">Name <span class="text-danger">*</span></label>
                 <input type="text" name="name" id="edit_name" class="form-control" required maxlength="200">
               </div>
-              <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="edit_status" name="iStatus" value="1">
-                <label class="form-check-label" for="edit_status">Active</label>
-              </div>
+              <div class="mb-3">
+              <label class="form-label">
+               Status
+              </label>
+              <select name="iStatus" id="edit_status" class="form-control">
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </select>
+            </div>
             </div>
             <div class="modal-footer">
               <button class="btn btn-primary w-100">Update</button>
@@ -201,7 +206,7 @@
       const status = tr.getAttribute('data-status') === '1';
 
       document.getElementById('edit_name').value = name;
-      document.getElementById('edit_status').checked = status;
+      document.getElementById('edit_status').value = status ? '1' : '0';
 
       const form = document.getElementById('editForm');
       form.action = `{{ url('admin/albums') }}/${id}`;

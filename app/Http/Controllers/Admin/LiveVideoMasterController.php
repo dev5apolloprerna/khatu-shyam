@@ -59,4 +59,18 @@ class LiveVideoMasterController extends Controller
         LiveVideoMaster::whereIn('live_video_id', $request->ids)->update(['isDelete' => 1]);
         return response()->json(['status' => 'success']);
     }
+
+    public function toggleStatus($livevideomaster)
+    {
+        $gallery = LiveVideoMaster::where('live_video_id',$gallery)->first();
+        if ($gallery->isDelete) {
+            return response()->json(['ok' => false, 'message' => 'Cannot toggle deleted record.'], 422);
+        }
+        $gallery->iStatus = $gallery->iStatus ? 0 : 1;
+        $gallery->update([
+            'iStatus' => $gallery->iStatus
+        ]);
+
+        return redirect()->back()->with('success','Status Updated');
+    }
 }

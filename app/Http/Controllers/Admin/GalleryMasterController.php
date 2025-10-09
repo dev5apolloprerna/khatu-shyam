@@ -10,6 +10,21 @@ use Illuminate\Support\Facades\File;
 
 class GalleryMasterController extends Controller
 {
+    private string $uploadPath; // e.g. .../public_html/khatushyam/timetable
+    private string $publicUrl;  // e.g. {APP_URL}/khatushyam/timetable
+
+    public function __construct()
+    {
+        // Folder name only; base path & base url come from helpers
+        $folder = 'gallery_master';
+
+        $this->uploadPath = khatushyam_base_path($folder);
+        $this->publicUrl  = khatushyam_base_url($folder);
+
+        ensure_dir($this->uploadPath);
+
+    }
+
     public function index()
     {
         $gallery = DB::table('gallery_master as g')
@@ -30,12 +45,15 @@ class GalleryMasterController extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg,gif',
         ]);
 
-        $fileName = time().'.'.$request->image->extension();
-        $request->image->move(base_path('public_html/khatum shyam/gallery_master/'), $fileName);
+        
+        $imageName = null;
+        if ($request->hasFile('image')) {
+            $imageName = $this->storeImage($request->file('image'));
+        }
 
         GalleryMaster::create([
             'album_id' => $request->album_id,
-            'image' => $fileName,
+            'image' => $imageName,
             'iStatus' => $request->iStatus ?? 1,
         ]);
 
@@ -58,37 +76,36 @@ class GalleryMasterController extends Controller
 
         $image = $gallery->image;
 
-        if($request->hasFile('image')) {
-            // Delete old image
-            $path = base_path('public_html/khatum shyam/gallery_master/'.$image);
-            if(File::exists($path)) {
-                File::delete($path);
+        $imageName = $gallery->image;
+        if ($request->hasFile('image')) {
+            $newName = $this->storeImage($request->file('image'));
+            if ($imageName) {
+                $this->unlinkImage($imageName);
             }
-
-            $fileName = time().'.'.$request->image->extension();
-            $request->image->move(base_path('public_html/khatum shyam/gallery_master/'), $fileName);
-            $image = $fileName;
+            $imageName = $newName;
         }
 
+        
         $gallery->update([
             'album_id' => $request->album_id,
-            'image' => $image,
+            'image' => $imageName,
             'iStatus' => $request->iStatus ?? 1,
         ]);
 
         return redirect()->route('admin.gallery_master.index')->with('success', 'Image updated successfully.');
     }
 
-    public function delete(Request $request)
+    public function destroy(Request $request)
     {
         $gallery = GalleryMaster::findOrFail($request->id);
-        $path = base_path('public_html/khatum shyam/gallery_master/'.$gallery->image);
-        if(File::exists($path)) {
-            File::delete($path);
+        
+        if ($gallery->image) {
+            $this->unlinkImage($gallery->image);
+            $gallery->update(['image' => null]);
         }
 
         $gallery->update(['isDelete' => 1]);
-        return response()->json(['status' => 'success']);
+        return back()->with('success', 'Album deleted.');
     }
 
     public function bulkDelete(Request $request)
@@ -96,13 +113,46 @@ class GalleryMasterController extends Controller
         $items = GalleryMaster::whereIn('gallery_id', $request->ids)->get();
 
         foreach($items as $item) {
-            $path = base_path('public_html/khatum shyam/gallery_master/'.$item->image);
-            if(File::exists($path)) {
-                File::delete($path);
+
+            if ($item->image) {
+                $this->unlinkImage($item->image);
+                $b->update(['image' => null]);
             }
-            $item->update(['isDelete' => 1]);
+
+           $item->update(['isDelete' => 1]);
         }
 
         return response()->json(['status' => 'success']);
+    }
+
+    public function toggleStatus($gallery)
+    {
+        $gallery = GalleryMaster::where('gallery_id',$gallery)->first();
+        if ($gallery->isDelete) {
+            return response()->json(['ok' => false, 'message' => 'Cannot toggle deleted record.'], 422);
+        }
+        $gallery->iStatus = $gallery->iStatus ? 0 : 1;
+        $gallery->update([
+            'iStatus' => $gallery->iStatus
+        ]);
+
+        return redirect()->back()->with('success','Status Updated');
+    }
+    private function storeImage($file): string
+    {
+        $ts  = now()->format('YmdHisv'); // timestamped filename
+        $ext = $file->getClientOriginalExtension();
+        $name = $ts . '.' . $ext;
+        $file->move($this->uploadPath, $name);
+        return $name;
+    }
+
+    private function unlinkImage(?string $name): void
+    {
+        if (!$name) return;
+        $full = $this->uploadPath . DIRECTORY_SEPARATOR . $name;
+        if (File::exists($full)) {
+            @File::delete($full);
+        }
     }
 }

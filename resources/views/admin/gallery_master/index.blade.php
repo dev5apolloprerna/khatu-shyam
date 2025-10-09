@@ -50,7 +50,6 @@
                                     </select>
                                 </div>
 
-
                                 <button type="submit" class="btn btn-success">Submit</button>
                             </form>
                         </div>
@@ -82,22 +81,28 @@
                                             <tr>
                                                 <td><input type="checkbox" class="recordCheckbox" value="{{ $item->gallery_id }}"></td>
                                                 <td>{{ $item->album_name }}</td>
-                                                <td><img src="{{ asset('public_html/khatum shyam/gallery_master/'.$item->image) }}" width="70"></td>
+                                                <td><img src="{{ asset('gallery_master/'.$item->image) }}" width="70"></td>
                                                 <td>{{ $item->created_at }}</td>
                                                 <td>
-                                                    @if($item->iStatus == 1)
-                                                        <span class="badge bg-success">Active</span>
-                                                    @else
-                                                        <span class="badge bg-danger">Inactive</span>
-                                                    @endif
+                                                    <form action="{{ route('admin.toggle-status', $item->gallery_id) }}" method="POST">
+                                                        @csrf 
+                                                        <button class="btn btn-sm toggle-status {{ $item->iStatus ? 'btn-success' : 'btn-warning' }}">
+                                                            {{ $item->iStatus ? 'Active' : 'Inactive' }}
+                                                        </button>
+                                                    </form>
                                                 </td>
                                                 <td>
                                                     <a href="javascript:void(0);" class="btn btn-sm btn-primary editGallery" data-id="{{ $item->gallery_id }}">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <a href="javascript:void(0);" class="btn btn-sm btn-danger deleteGallery" data-id="{{ $item->gallery_id }}">
-                                                        <i class="fas fa-trash-alt "></i>
-                                                    </a>
+                                                    <form class="d-inline" method="POST" action="{{ route('admin.gallery_master.destroy', $item->gallery_id) }}" onsubmit="return confirm('Delete this album?')">
+                                                      @csrf @method('DELETE')
+                                                      <button class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
+                                                    </form>
+                                                    <!--<a href="javascript:void(0);" class="btn btn-sm btn-danger deleteGallery" data-id="{{ $item->gallery_id }}">-->
+                                                    <!--        <i class="fas fa-trash-alt"></i>-->
+                                                    <!--    </a>-->
+
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -121,27 +126,70 @@
 
 @section('scripts')
 <script>
-    $(document).ready(function () {
+$(document).ready(function () {
     // Open modal and load gallery data
     $('.editGallery').on('click', function () {
         let galleryId = $(this).data('id');
-
-
-        $.get('/admin/gallery_master/edit/' + galleryId, function (data) {
+        $.get("{{ url('admin/gallery_master/edit') }}/" + galleryId, function (data) {
             $('#edit_gallery_id').val(data.gallery_id);
             $('#edit_album_id').val(data.album_id);
-            $('#current_image').attr('src', '/public_html/khatum shyam/gallery_master/' + data.image);
-
-            if (data.iStatus == 1) {
-                $('#edit_status_active').prop('checked', true);
-            } else {
-                $('#edit_status_inactive').prop('checked', true);
-            }
-
-        $('#editGalleryForm').attr('action', '/admin/gallery_master/update/' + galleryId);
+            $('#current_image').attr('src', "{{ asset('gallery_master') }}/" + data.image);
+            $('#edit_status').val(data.iStatus);
+            $('#editGalleryForm').attr('action', "{{ url('admin/gallery_master/update') }}/" + galleryId);
             $('#editModal').modal('show');
         });
     });
+
+    // Select/Deselect All
+    $('#checkAll').on('click', function () {
+        $('.recordCheckbox').prop('checked', this.checked);
+    });
+
+    // Bulk Delete Confirmation
+    $('#bulkDelete').on('click', function () {
+        if (confirm("Are you sure you want to delete selected items?")) {
+            let ids = $(".recordCheckbox:checked").map(function () {
+                return $(this).val();
+            }).get();
+
+            if (ids.length > 0) {
+                $.ajax({
+                    url: "{{ route('admin.gallery_master.bulk-delete') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        ids: ids
+                    },
+                    success: function (response) {
+                        location.reload();
+                    }
+                });
+            } else {
+                alert("Please select at least one record to delete.");
+            }
+        }
+    });
+});
+// Single Delete with confirmation
+$('.deleteGallery').on('click', function () {
+    const galleryId = $(this).data('id');
+
+    if (confirm("Are you sure you want to delete this image?")) {
+        $.ajax({
+            url: "{{ url('admin/gallery_master/delete') }}/" + galleryId,
+            type: "POST",
+            data: {
+                _method: 'DELETE',
+                _token: "{{ csrf_token() }}"
+            },
+            success: function (response) {
+                location.reload();
+            },
+            error: function () {
+                alert('Failed to delete. Please try again.');
+            }
+        });
+    }
 });
 
 </script>

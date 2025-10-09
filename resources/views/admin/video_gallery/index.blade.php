@@ -8,6 +8,7 @@
         <div class="container-fluid">
             {{-- Alert Messages --}}
             @include('common.alert')
+
             <div class="row">
                 <!-- Left Side: Form -->
                 <div class="col-md-4">
@@ -16,22 +17,21 @@
                         <div class="card-body">
                             <form action="{{ route('admin.video_gallery.store') }}" method="POST">
                                 @csrf
+
                                 <div class="mb-3">
-                                    <label class="form-label">Video Link <span style="color:red;">*</span></label>
-                                    <input type="text" name="video_link" class="form-control" value="{{ old('video_link') }}">
-                                    @if($errors->has('video_link'))
-                                        <span class="text-danger">
-                                            {{ $errors->first('video_link') }}
-                                        </span>
+                                    <label class="form-label">Name <span style="color:red;">*</span></label>
+                                    <input type="text" name="name" class="form-control" required value="{{ old('name') }}">
+                                    @if ($errors->has('name'))
+                                        <span class="text-danger">{{ $errors->first('name') }}</span>
                                     @endif
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label">Status</label>
-                                    <select name="iStatus" class="form-control">
-                                        <option value="1">Active</option>
-                                        <option value="0">Inactive</option>
-                                    </select>
+                                    <label class="form-label">Video Link <span style="color:red;">*</span></label>
+                                    <input type="text" name="video_link" class="form-control" value="{{ old('video_link') }}">
+                                    @if ($errors->has('video_link'))
+                                        <span class="text-danger">{{ $errors->first('video_link') }}</span>
+                                    @endif
                                 </div>
 
                                 <button type="submit" class="btn btn-success">Submit</button>
@@ -53,30 +53,24 @@
                                     <thead>
                                         <tr>
                                             <th><input type="checkbox" id="checkAll"></th>
+                                            <th>Name</th>
                                             <th>Video Link</th>
-                                            <th>Created At</th>
-                                            <th>Status</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($videos as $video)
+                                        @foreach ($videos as $video)
                                             <tr>
                                                 <td><input type="checkbox" class="recordCheckbox" value="{{ $video->video_Id }}"></td>
+                                                <td>{{ $video->name }}</td>
                                                 <td>{{ $video->video_link }}</td>
-                                                <td>{{ $video->created_at }}</td>
                                                 <td>
-                                                    @if($video->iStatus == 1)
-                                                        <span class="badge bg-success">Active</span>
-                                                    @else
-                                                        <span class="badge bg-danger">Inactive</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    <a href="javascript:void(0);" class="btn btn-sm btn-primary editVideo" data-id="{{ $video->video_Id }}">
+                                                    <a href="javascript:void(0);" class="btn btn-sm btn-primary editVideo"
+                                                        data-id="{{ $video->video_Id }}">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <a href="javascript:void(0);" class="btn btn-sm btn-danger deleteVideo" data-id="{{ $video->video_Id }}">
+                                                    <a href="javascript:void(0);" class="btn btn-sm btn-danger deleteVideo"
+                                                        data-id="{{ $video->video_Id }}">
                                                         <i class="fas fa-trash-alt"></i>
                                                     </a>
                                                 </td>
@@ -99,41 +93,32 @@
 @include('admin.video_gallery.edit-modal')
 @endsection
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 @section('scripts')
-
 <script>
-    $(document).ready(function () {
-    // Open edit modal and load data
-    $('.editVideo').on('click', function () {
-        let id = $(this).data('id');
+$(document).ready(function() {
 
-        $.get('/admin/video_gallery/edit/' + id, function (data) {
+    // Open edit modal and load data
+    $('.editVideo').on('click', function() {
+        let id = $(this).data('id');
+        $.get("{{ url('admin/video_gallery/edit') }}/" + id, function(data) {
             $('#edit_video_Id').val(data.video_Id);
             $('#edit_video_link').val(data.video_link);
-
-            if (data.iStatus == 1) {
-                $('#edit_status_active').prop('checked', true);
-            } else {
-                $('#edit_status_inactive').prop('checked', true);
-            }
-
-            $('#editVideoForm').attr('action', '/admin/video_gallery/update/' + id);
+            $('#edit_name').val(data.name);
+            $('#editVideoForm').attr('action', "{{ url('admin/video_gallery/update') }}/" + id);
             $('#editModal').modal('show');
         });
     });
 
-    // Bulk delete
-    $('#checkAll').on('click', function () {
+    // Select/Deselect All
+    $('#checkAll').on('click', function() {
         $('.recordCheckbox').prop('checked', this.checked);
     });
 
-    $('#bulkDelete').on('click', function () {
-        let ids = [];
-        $('.recordCheckbox:checked').each(function () {
-            ids.push($(this).val());
-        });
+    // Bulk delete
+    $('#bulkDelete').on('click', function() {
+        let ids = $(".recordCheckbox:checked").map(function() {
+            return $(this).val();
+        }).get();
 
         if (ids.length === 0) {
             alert('Please select at least one record to delete.');
@@ -142,13 +127,13 @@
 
         if (confirm('Are you sure you want to delete selected records?')) {
             $.ajax({
-                url: '/admin/video_gallery/bulk-delete',
-                method: 'POST',
+                url: "{{ route('admin.video_gallery.bulk-delete') }}",
+                method: "POST",
                 data: {
-                    _token: '{{ csrf_token() }}',
+                    _token: "{{ csrf_token() }}",
                     ids: ids
                 },
-                success: function (response) {
+                success: function(response) {
                     location.reload();
                 }
             });
@@ -156,19 +141,23 @@
     });
 
     // Single delete
-    $('.deleteVideo').on('click', function () {
+    $('.deleteVideo').on('click', function() {
         let id = $(this).data('id');
-
         if (confirm('Are you sure you want to delete this record?')) {
-            $.post('/admin/video_gallery/delete', {
-                _token: '{{ csrf_token() }}',
-                id: id
-            }, function (response) {
-                location.reload();
+            $.ajax({
+                url: "{{ route('admin.video_gallery.delete') }}",
+                method: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    id: id
+                },
+                success: function(response) {
+                    location.reload();
+                }
             });
         }
     });
-});
 
+});
 </script>
-@ensection
+@endsection

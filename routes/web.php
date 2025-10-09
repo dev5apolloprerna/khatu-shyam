@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\Front\FrontController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
@@ -7,15 +8,27 @@ use App\Http\Controllers\Admin\LiveVideoMasterController;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 
+
+use App\Http\Controllers\FrontviewController;
 
 use App\Http\Controllers\Admin\AlbumController;
 use App\Http\Controllers\Admin\GalleryMasterController;
 use App\Http\Controllers\Admin\TimetableMasterController;
 use App\Http\Controllers\Admin\VideoGalleryController;
 
+Route::get('/clear-cache', function () {
+    Artisan::call('cache:clear');
+    Artisan::call('view:clear');
+    Artisan::call('route:clear');
+    Artisan::call('config:clear');
+    Artisan::call('config:cache');
+    return 'Cache is cleared';
+});
+
 Route::fallback(function () {
-     return view('errors.404');
+    return view('errors.404');
 });
 
 Route::get('/login', function () {
@@ -74,9 +87,6 @@ Route::middleware(['auth'])  // add your other middleware if needed
         Route::post('/albums/bulk-destroy', [AlbumController::class, 'bulkDestroy'])->name('bulk-destroy');
         Route::post('/albums/toggle-status/{album}', [AlbumController::class, 'toggleStatus'])->name('toggle-status');
     });
-
-
-
 Route::prefix('admin')->group(function () {
     Route::get('gallery_master', [GalleryMasterController::class, 'index'])->name('admin.gallery_master.index');
     Route::post('gallery_master/store', [GalleryMasterController::class, 'store'])->name('admin.gallery_master.store');
@@ -85,39 +95,50 @@ Route::prefix('admin')->group(function () {
     Route::post('gallery_master/update/{id}', [GalleryMasterController::class, 'update'])->name('admin.gallery_master.update');
 
     Route::get('gallery_master/edit/{id}', [GalleryMasterController::class, 'edit'])->name('admin.gallery_master.edit');
-    Route::post('gallery_master/delete', [GalleryMasterController::class, 'delete'])->name('admin.gallery_master.delete');
+    Route::delete('admin/gallery_master/delete/{id}', [GalleryMasterController::class, 'destroy'])->name('admin.gallery_master.destroy');
     Route::post('gallery_master/bulk-delete', [GalleryMasterController::class, 'bulkDelete'])->name('admin.gallery_master.bulk-delete');
+    Route::post('/gallery_master/toggle-status/{album}', [GalleryMasterController::class, 'toggleStatus'])->name('admin.toggle-status');
 });
 
 
 Route::prefix('admin')->group(function () {
-Route::get('live_video_master', [LiveVideoMasterController::class, 'index'])->name('admin.live_video_master.index');
-Route::post('live_video_master/store', [LiveVideoMasterController::class, 'store'])->name('admin.live_video_master.store');
-Route::get('live_video_master/edit/{id}', [LiveVideoMasterController::class, 'edit'])->name('admin.live_video_master.edit');
-Route::post('live_video_master/update/{id}', [LiveVideoMasterController::class, 'update'])->name('admin.live_video_master.update');
-Route::post('live_video_master/delete', [LiveVideoMasterController::class, 'delete'])->name('admin.live_video_master.delete');
-Route::post('live_video_master/bulk-delete', [LiveVideoMasterController::class, 'bulkDelete'])->name('admin.live_video_master.bulk-delete');
-});
-
-
-Route::prefix('admin')->group(function () {
-
-Route::get('timetable_master', [TimetableMasterController::class, 'index'])->name('admin.timetable_master.index');
-Route::post('timetable_master/store', [TimetableMasterController::class, 'store'])->name('admin.timetable_master.store');
-Route::get('timetable_master/edit/{id}', [TimetableMasterController::class, 'edit'])->name('admin.timetable_master.edit');
-Route::post('timetable_master/update/{id}', [TimetableMasterController::class, 'update'])->name('admin.timetable_master.update');
-Route::post('timetable_master/delete', [TimetableMasterController::class, 'delete'])->name('admin.timetable_master.delete');
-Route::post('timetable_master/bulk-delete', [TimetableMasterController::class, 'bulkDelete'])->name('admin.timetable_master.bulk-delete');
+    Route::get('live_video_master', [LiveVideoMasterController::class, 'index'])->name('admin.live_video_master.index');
+    Route::post('live_video_master/store', [LiveVideoMasterController::class, 'store'])->name('admin.live_video_master.store');
+    Route::get('live_video_master/edit/{id}', [LiveVideoMasterController::class, 'edit'])->name('admin.live_video_master.edit');
+    Route::post('live_video_master/update/{id}', [LiveVideoMasterController::class, 'update'])->name('admin.live_video_master.update');
+    Route::post('live_video_master/delete', [LiveVideoMasterController::class, 'delete'])->name('admin.live_video_master.delete');
+    Route::post('live_video_master/bulk-delete', [LiveVideoMasterController::class, 'bulkDelete'])->name('admin.live_video_master.bulk-delete');
+    Route::post('/live_video_master/toggle-status/{album}', [LiveVideoMasterController::class, 'toggleStatus'])->name('admin.live_video_master.toggle-status');
 });
 
 
 Route::prefix('admin')->group(function () {
 
-Route::get('video_gallery', [VideoGalleryController::class, 'index'])->name('admin.video_gallery.index');
-Route::post('video_gallery/store', [VideoGalleryController::class, 'store'])->name('admin.video_gallery.store');
-Route::get('video_gallery/edit/{id}', [VideoGalleryController::class, 'edit'])->name('admin.video_gallery.edit');
-Route::post('video_gallery/update/{id}', [VideoGalleryController::class, 'update'])->name('admin.video_gallery.update');
-Route::post('video_gallery/delete', [VideoGalleryController::class, 'delete'])->name('admin.video_gallery.delete');
-Route::post('video_gallery/bulk-delete', [VideoGalleryController::class, 'bulkDelete'])->name('admin.video_gallery.bulk-delete');
-
+    Route::get('timetable_master', [TimetableMasterController::class, 'index'])->name('admin.timetable_master.index');
+    Route::post('timetable_master/store', [TimetableMasterController::class, 'store'])->name('admin.timetable_master.store');
+    Route::get('timetable_master/edit/{id}', [TimetableMasterController::class, 'edit'])->name('admin.timetable_master.edit');
+    Route::post('timetable_master/update/{id}', [TimetableMasterController::class, 'update'])->name('admin.timetable_master.update');
+    Route::post('timetable_master/delete', [TimetableMasterController::class, 'delete'])->name('admin.timetable_master.delete');
+    Route::post('timetable_master/bulk-delete', [TimetableMasterController::class, 'bulkDelete'])->name('admin.timetable_master.bulk-delete');
 });
+
+
+Route::prefix('admin')->group(function () {
+
+    Route::get('video_gallery', [VideoGalleryController::class, 'index'])->name('admin.video_gallery.index');
+    Route::post('video_gallery/store', [VideoGalleryController::class, 'store'])->name('admin.video_gallery.store');
+    Route::get('video_gallery/edit/{id}', [VideoGalleryController::class, 'edit'])->name('admin.video_gallery.edit');
+    Route::post('video_gallery/update/{id}', [VideoGalleryController::class, 'update'])->name('admin.video_gallery.update');
+    Route::post('video_gallery/delete', [VideoGalleryController::class, 'delete'])->name('admin.video_gallery.delete');
+    Route::post('video_gallery/bulk-delete', [VideoGalleryController::class, 'bulkDelete'])->name('admin.video_gallery.bulk-delete');
+});
+
+Route::get('/', [FrontviewController::class, 'index'])->name('Front.index');
+Route::get('/contact-us', [FrontviewController::class, 'ContactUs'])->name('Front.ContactUs');
+Route::get('/about-us', [FrontviewController::class, 'AboutUs'])->name('Front.AboutUs');
+Route::get('/image', [FrontviewController::class, 'image'])->name('Front.image');
+Route::get('/image/detail/{slugname?}', [FrontviewController::class, 'imagedetail'])->name('Front.imagedetail');
+Route::get('/video', [FrontviewController::class, 'video'])->name('Front.video');
+Route::post('/ContactUs/sendmail', [FrontviewController::class, 'ContactUs_sendmail'])->name('Front.ContactUs_sendmail');
+Route::get('/ThankYou', [FrontviewController::class, 'ThankYou'])->name('Front.ThankYou');
+
